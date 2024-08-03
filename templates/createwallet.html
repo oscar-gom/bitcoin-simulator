@@ -12,58 +12,15 @@
         <h1>Create a wallet!</h1>
         <form action="/create-wallet" method="post">
             <div>
-                <!-- First six words -->
                 <div>
-                    <div>
-                        <label for="word1">1:</label>
-                        <input type="text" name="word1" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word2">2:</label>
-                        <input type="text" name="word2" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word3">3:</label>
-                        <input type="text" name="word3" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word4">4:</label>
-                        <input type="text" name="word4" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word5">5:</label>
-                        <input type="text" name="word5" id="" disabled>
-                    </div>
-                    <!-- Last six words -->
-                    <div>
-                        <label for="word6">6:</label>
-                        <input type="text" name="word6" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word7">7:</label>
-                        <input type="text" name="word7" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word8">8:</label>
-                        <input type="text" name="word8" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word9">9:</label>
-                        <input type="text" name="word9" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word10">10:</label>
-                        <input type="text" name="word10" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word11">11:</label>
-                        <input type="text" name="word11" id="" disabled>
-                    </div>
-                    <div>
-                        <label for="word12">12:</label>
-                        <input type="text" name="word12" id="" disabled>
-                    </div>
+                    <ol>
+                        {% for word in words %}
+                        <li>{{ word }}</li>
+                        <br>
+                        {% endfor %}
+                    </ol>
                 </div>
+                <button type="submit">Create wallet</button>
             </div>
         </form>
     </div>

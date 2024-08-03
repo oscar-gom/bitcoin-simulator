@@ -47,10 +47,11 @@ def index():
 
 @app.route("/create-wallet", methods=["GET", "POST"])
 def create_wallet():
+    words = get_words()
     if request.method == "POST":
         pass
 
-    return render_template("createwallet.html")
+    return render_template("createwallet.html", words=words)
 
 
 if __name__ == "__main__":
