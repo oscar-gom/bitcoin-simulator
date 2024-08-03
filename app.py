@@ -34,6 +34,14 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/create-wallet", methods=["GET", "POST"])
+def create_wallet():
+    if request.method == "POST":
+        pass
+
+    return render_template("createwallet.html")
+
+
 if __name__ == "__main__":
     create_database()
     app.run(debug=True)
