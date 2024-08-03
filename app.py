@@ -1,5 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for
 import sqlite3
+import json
+import random
 
 app = Flask(__name__)
 
@@ -29,6 +31,15 @@ def connect_database():
     return conn
 
 
+def get_words():
+    with open("bip39words.json", "r") as file:
+        data = json.load(file)
+
+    wallet_words = random.sample(data, 12)
+
+    return wallet_words
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -44,4 +55,5 @@ def create_wallet():
 
 if __name__ == "__main__":
     create_database()
+    get_words()
     app.run(debug=True)
