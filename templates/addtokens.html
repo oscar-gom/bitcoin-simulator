@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add tokens</title>
+</head>
+
+<body>
+    <h1>Add some tokens to your wallet!</h1>
+
+    <form action="/add-tokens" method="post">
+        <div>
+            <h2>Log In with your wallet</h2>
+            <div>
+                <h3>Insert the words in the following positions</h3>
+                {% for pos in positions %}
+                <label for="">{{pos}}</label>
+                <br>
+                <input type="text" name="" id="" required>
+                <br>
+                {% endfor %}
+            </div>
+            <div>
+                <button type="submit">LogIn</button>
+            </div>
+        </div>
+    </form>
+</body>
+
+</html>

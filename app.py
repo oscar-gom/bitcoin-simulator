@@ -79,6 +79,12 @@ def encrypt_words(words):
     return hashed_words
 
 
+def get_position_words():
+    positions = random.sample(range(1, 13), 5)
+    positions.sort()
+    return positions
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -111,6 +117,14 @@ def create_wallet():
         return f"<h1>Wallet address: {address} Created successfully!</h1>"
 
     return render_template("createwallet.html", words=words)
+
+
+@app.route("/add-tokens", methods=["GET", "POST"])
+def add_tokens():
+    if request.method == "GET":
+        positions = get_position_words()
+        session["positions"] = positions
+        return render_template("addtokens.html", positions=positions)
 
 
 if __name__ == "__main__":
