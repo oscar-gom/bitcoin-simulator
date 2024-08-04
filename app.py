@@ -116,6 +116,22 @@ def does_wallet_exist(user_input, positions):
         return False, ""
 
 
+def add_tokens_address(tokens, address):
+    conn = connect_database()
+    c = conn.cursor()
+
+    c.execute(
+        "UPDATE wallet SET token_amount = token_amount + ? WHERE address = ?",
+        (tokens, address),
+    )
+
+    conn.commit()
+
+    c.execute("SELECT token_amount FROM wallet WHERE address = ?", (address,))
+    print(f"New amount of tokens: {c.fetchall()[0][0]}")
+    conn.close()
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -166,7 +182,10 @@ def add_tokens():
 
         if wallet_exists:
             print(address)
-            return f"<h1>Wallet address: {address} </h1>"
+            token_amount = request.form["token_amount"]
+            add_tokens_address(token_amount, address)
+            return "good"
+            # return f"<h1>Wallet address: {address} </h1>"
         else:
             return "Your seedphrase is wrong!"
 
