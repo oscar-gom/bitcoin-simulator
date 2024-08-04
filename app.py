@@ -85,6 +85,37 @@ def get_position_words():
     return positions
 
 
+def does_wallet_exist(user_input, positions):
+    encrypted_input = encrypt_words(user_input)
+
+    conn = connect_database()
+    c = conn.cursor()
+    query = """
+    SELECT address 
+    FROM wallet 
+    WHERE word{} = ? AND word{} = ? AND word{} = ? AND word{} = ? AND word{} = ?
+    """.format(positions[0], positions[1], positions[2], positions[3], positions[4])
+
+    c.execute(
+        query,
+        (
+            encrypted_input[0],
+            encrypted_input[1],
+            encrypted_input[2],
+            encrypted_input[3],
+            encrypted_input[4],
+        ),
+    )
+
+    query = c.fetchall()
+
+    if query:
+        address = query[0][0]
+        return True, address
+    else:
+        return False, ""
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -125,6 +156,19 @@ def add_tokens():
         positions = get_position_words()
         session["positions"] = positions
         return render_template("addtokens.html", positions=positions)
+    else:
+        positions = session.get("positions")
+        user_input = []
+        for p in positions:
+            user_input.append(request.form[f"word{p}"])
+
+        wallet_exists, address = does_wallet_exist(user_input, positions)
+
+        if wallet_exists:
+            print(address)
+            return f"<h1>Wallet address: {address} </h1>"
+        else:
+            return "Your seedphrase is wrong!"
 
 
 if __name__ == "__main__":
