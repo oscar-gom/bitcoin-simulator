@@ -1,10 +1,11 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, session
 import sqlite3
 import json
 import random
 import string
 
 app = Flask(__name__)
+app.secret_key = "secretkey"
 
 
 def create_database():
@@ -28,7 +29,7 @@ def create_database():
 
 def connect_database():
     conn = sqlite3.connect("blockchain.db")
-    conn.row_factory = sqlite3.Row
+    # conn.row_factory = sqlite3.Row
     return conn
 
 
@@ -59,15 +60,38 @@ def create_address():
 
 @app.route("/")
 def index():
+    conn = connect_database()
+    c = conn.cursor()
+
     return render_template("index.html")
 
 
 @app.route("/create-wallet", methods=["GET", "POST"])
 def create_wallet():
-    words = get_words()
-    if request.method == "POST":
+    if request.method == "GET":
+        words = get_words()
+        session["words"] = words
+        print(words[0])
+    else:
+        words = session.get("words")
+        if words is None:
+            return "<h1>Error: No words found in session.</h1>", 400
+
         address = create_address()
-        return f"<h1>Wallet address: {address}</h1>"
+
+        print(words[0])
+
+        conn = connect_database()
+        c = conn.cursor()
+
+        c.execute(
+            "INSERT INTO wallet VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (address, 0.0, *words),
+        )
+        conn.commit()
+        conn.close()
+
+        return f"<h1>Wallet address: {address} Created successfully!</h1>"
 
     return render_template("createwallet.html", words=words)
 
