@@ -1,11 +1,16 @@
 from flask import Flask, request, render_template, redirect, url_for, session
+from dotenv import load_dotenv
+import os
 import sqlite3
 import json
 import random
 import string
+import hashlib
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "secretkey"
+app.secret_key = os.getenv("SECRET_KEY")
 
 
 def create_database():
@@ -58,6 +63,22 @@ def create_address():
     return address
 
 
+def encrypt_words(words):
+    hashed_words = []
+
+    for word in words:
+        current_hash = word.encode("utf-8")
+
+        for _ in range(int(os.getenv("TIMES_ENCRYPTED"))):
+            hash_obj = hashlib.sha256()
+            hash_obj.update(current_hash)
+            current_hash = hash_obj.digest()
+
+        hashed_words.append(current_hash.hex())
+
+    return hashed_words
+
+
 @app.route("/")
 def index():
     conn = connect_database()
@@ -71,7 +92,6 @@ def create_wallet():
     if request.method == "GET":
         words = get_words()
         session["words"] = words
-        print(words[0])
     else:
         words = session.get("words")
         if words is None:
@@ -79,14 +99,14 @@ def create_wallet():
 
         address = create_address()
 
-        print(words[0])
+        crypted_words = encrypt_words(words)
 
         conn = connect_database()
         c = conn.cursor()
 
         c.execute(
             "INSERT INTO wallet VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (address, 0.0, *words),
+            (address, 0.0, *crypted_words),
         )
         conn.commit()
         conn.close()
