@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for
 import sqlite3
 import json
 import random
+import string
 
 app = Flask(__name__)
 
@@ -13,7 +14,7 @@ def create_database():
         """CREATE TABLE IF NOT EXISTS wallet (address TEXT, token_amount NUMERIC, word1 TEXT, word2 TEXT, word3 TEXT, word4 TEXT, word5 TEXT, word6 TEXT, word7 TEXT, word8 TEXT, word9 TEXT, word10 TEXT, word11 TEXT, word12 TEXT)"""
     )
     c.execute(
-        "CREATE TABLE IF NOT EXISTS transactions (hash TEXT, emitter TEXT, receiver TEXT, created DATETIME, mined DATETIME, gas_fee NUMERIC, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
+        "CREATE TABLE IF NOT EXISTS transactions (hash TEXT, emitter TEXT, receiver TEXT, created DATETIME, mined DATETIME, tokens_send NUMERIC, gas_fee NUMERIC, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
     )
     c.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_address_wallet ON wallet (address)"
@@ -40,6 +41,22 @@ def get_words():
     return wallet_words
 
 
+def create_address():
+    length = 42
+    prefix = "bc"
+    total_length = length - len(prefix)
+
+    allowed_characters = string.ascii_lowercase + string.digits
+
+    random_part = "".join(
+        random.choice(allowed_characters) for _ in range(total_length)
+    )
+
+    address = prefix + random_part
+
+    return address
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -49,7 +66,8 @@ def index():
 def create_wallet():
     words = get_words()
     if request.method == "POST":
-        pass
+        address = create_address()
+        return f"<h1>Wallet address: {address}</h1>"
 
     return render_template("createwallet.html", words=words)
 
