@@ -81,9 +81,6 @@ def encrypt_words(words):
 
 @app.route("/")
 def index():
-    conn = connect_database()
-    c = conn.cursor()
-
     return render_template("index.html")
 
 
