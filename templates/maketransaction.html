@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make transaction</title>
+</head>
+
+<body>
+    <h1>Add some tokens to your wallet!</h1>
+
+    <form action="/make-transaction" method="post">
+        <div>
+            <h2>Log In with your wallet</h2>
+            <div>
+                <h3>Insert the words in the following positions</h3>
+                {% for pos in positions %}
+                <label for="">{{pos}}</label>
+                <br>
+                <input type="password" name="word{{pos}}" id="" required>
+                <br>
+                {% endfor %}
+                <br>
+                <div>
+                    <label for="receiver">Receiver address</label>
+                    <br>
+                    <input type="text" name="receiver" required>
+                    <br>
+                </div>
+                <div>
+                    <br>
+                    <label for="token_amount">Choose amount of tokens you want to send</label>
+                    <br>
+                    <input type="number" name="token_amount" step="0.00001" min="0.00001" max="20" required
+                        placeholder="Minimum transaction is 0.00001 max 20">
+                </div>
+            </div>
+            <div>
+                <br>
+                <button type="submit">Submit</button>
+            </div>
+        </div>
+    </form>
+</body>
+
+</html>

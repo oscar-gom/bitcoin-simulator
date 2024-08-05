@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, session
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 import os
 import sqlite3
 import json
@@ -17,10 +18,10 @@ def create_database():
     conn = sqlite3.connect("blockchain.db")
     c = conn.cursor()
     c.execute(
-        """CREATE TABLE IF NOT EXISTS wallet (address TEXT, token_amount NUMERIC, word1 TEXT, word2 TEXT, word3 TEXT, word4 TEXT, word5 TEXT, word6 TEXT, word7 TEXT, word8 TEXT, word9 TEXT, word10 TEXT, word11 TEXT, word12 TEXT)"""
+        """CREATE TABLE IF NOT EXISTS wallet (address TEXT PRIMARY KEY, token_amount NUMERIC, word1 TEXT, word2 TEXT, word3 TEXT, word4 TEXT, word5 TEXT, word6 TEXT, word7 TEXT, word8 TEXT, word9 TEXT, word10 TEXT, word11 TEXT, word12 TEXT)"""
     )
     c.execute(
-        "CREATE TABLE IF NOT EXISTS transactions (hash TEXT, emitter TEXT, receiver TEXT, created DATETIME, mined DATETIME, tokens_send NUMERIC, gas_fee NUMERIC, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
+        "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, emitter TEXT, receiver TEXT, mined DATETIME, tokens_send NUMERIC, gas_fee NUMERIC, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
     )
     c.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_address_wallet ON wallet (address)"
@@ -61,6 +62,18 @@ def create_address():
     address = prefix + random_part
 
     return address
+
+
+def create_transaction_hash():
+    prefix = "0" * 20
+
+    random_characters = "".join(
+        random.choice(string.ascii_letters + string.digits) for _ in range(44)
+    )
+
+    hash = prefix + random_characters
+
+    return hash
 
 
 def encrypt_words(words):
@@ -188,6 +201,42 @@ def add_tokens():
             # return f"<h1>Wallet address: {address} </h1>"
         else:
             return "Your seedphrase is wrong!"
+
+
+@app.route("/make-transaction", methods=["GET", "POST"])
+def make_transaction():
+    if request.method == "GET":
+        positions = get_position_words()
+        session["positions"] = positions
+        return render_template("maketransaction.html", positions=positions)
+    else:
+        positions = session.get("positions")
+        user_input = []
+        for p in positions:
+            user_input.append(request.form[f"word{p}"])
+
+        wallet_exists, emitter = does_wallet_exist(user_input, positions)
+
+        if wallet_exists:
+            receiver = request.form["receiver"]
+            token_amount = request.form["token_amunt"]
+            hash = create_transaction_hash()
+            mined_time = datetime.now() + timedelta(minutes=10)
+            # ! Provisonal number
+            gas_fee = 0.0001
+
+            conn = connect_database()
+            c = conn.cursor()
+
+            c.execute(
+                "INSERT INTO transaction hash, emitter, receiver, mined, tokens_send, gas_fee VALUES (?, ?, ?, ?, ?, ?)",
+                (hash, emitter, receiver, mined_time, token_amount, gas_fee),
+            )
+
+            conn.commit()
+            conn.close()
+
+            return "good"
 
 
 if __name__ == "__main__":
