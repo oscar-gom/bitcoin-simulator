@@ -70,7 +70,7 @@ def create_transaction_hash():
     prefix = "0" * 20
 
     random_characters = "".join(
-        random.choice(string.ascii_letters + string.digits) for _ in range(44)
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(44)
     )
 
     hash = prefix + random_characters
@@ -244,9 +244,9 @@ def add_tokens():
 def make_transaction():
     if request.method == "GET":
         positions = get_position_words()
-        gas_fee = 0.00005  #! TEST get_gas_fee()
+        gas_fee = 0.00005  #! TEST ONLY get_gas_fee()
         formatted_gas_fee = "{:.10f}".format(gas_fee)
-        session["gas"] = gas_fee
+        session["gas"] = formatted_gas_fee
         session["positions"] = positions
         return render_template(
             "maketransaction.html", positions=positions, gas_fee=formatted_gas_fee
