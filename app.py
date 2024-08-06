@@ -245,7 +245,7 @@ def make_transaction():
     if request.method == "GET":
         positions = get_position_words()
         gas_fee = 0.00005  #! TEST ONLY get_gas_fee()
-        formatted_gas_fee = "{:.10f}".format(gas_fee)
+        formatted_gas_fee = "{:.6f}".format(gas_fee)
         session["gas"] = formatted_gas_fee
         session["positions"] = positions
         return render_template(
