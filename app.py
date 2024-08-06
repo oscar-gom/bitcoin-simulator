@@ -171,7 +171,6 @@ def get_gas_fee():
 
 @app.route("/")
 def index():
-    get_value_btc()
     return render_template("index.html")
 
 
@@ -232,8 +231,12 @@ def add_tokens():
 def make_transaction():
     if request.method == "GET":
         positions = get_position_words()
+        gas_fee = get_gas_fee()
+        formatted_gas_fee = "{:.10f}".format(gas_fee)
         session["positions"] = positions
-        return render_template("maketransaction.html", positions=positions)
+        return render_template(
+            "maketransaction.html", positions=positions, gas_fee=formatted_gas_fee
+        )
     else:
         positions = session.get("positions")
         user_input = []
@@ -247,15 +250,13 @@ def make_transaction():
             token_amount = request.form["token_amunt"]
             hash = create_transaction_hash()
             mined_time = datetime.now() + timedelta(minutes=10)
-            # ! Provisonal number
-            gas_fee = get_gas_fee()
 
             conn = connect_database()
             c = conn.cursor()
 
             c.execute(
                 "INSERT INTO transaction hash, emitter, receiver, mined, tokens_send, gas_fee VALUES (?, ?, ?, ?, ?, ?)",
-                (hash, emitter, receiver, mined_time, token_amount, gas_fee),
+                (hash, emitter, receiver, mined_time, token_amount, formatted_gas_fee),
             )
 
             conn.commit()

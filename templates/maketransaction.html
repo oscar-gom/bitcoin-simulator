@@ -35,6 +35,12 @@
                     <input type="number" name="token_amount" step="0.00001" min="0.00001" max="20" required
                         placeholder="Minimum transaction is 0.00001 max 20">
                 </div>
+                <div>
+                    <br>
+                    <label for="fee">Transaction fee</label>
+                    <br>
+                    <input type="number" name="fee" step="0.000000000000001" required disabled value="{{gas_fee}}">
+                </div>
             </div>
             <div>
                 <br>
