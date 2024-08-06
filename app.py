@@ -7,6 +7,7 @@ import json
 import random
 import string
 import hashlib
+import requests
 
 load_dotenv()
 
@@ -145,8 +146,32 @@ def add_tokens_address(tokens, address):
     conn.close()
 
 
+def get_value_btc():
+    url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
+    parameters = {"symbol": "BTC", "convert": "USD"}
+    headers = {
+        "Accepts": "application/json",
+        "X-CMC_PRO_API_KEY": os.getenv("COINMARKET_API_KEY"),
+    }
+
+    response = requests.get(url, headers=headers, params=parameters)
+    data = response.json()
+
+    btc_price = data["data"]["BTC"]["quote"]["USD"]["price"]
+    print("precio", btc_price)
+    return btc_price
+
+
+def get_gas_fee():
+    btc_dollars = get_value_btc()
+    gas_fee = 5 / btc_dollars
+
+    return gas_fee
+
+
 @app.route("/")
 def index():
+    get_value_btc()
     return render_template("index.html")
 
 
@@ -223,7 +248,7 @@ def make_transaction():
             hash = create_transaction_hash()
             mined_time = datetime.now() + timedelta(minutes=10)
             # ! Provisonal number
-            gas_fee = 0.0001
+            gas_fee = get_gas_fee()
 
             conn = connect_database()
             c = conn.cursor()
