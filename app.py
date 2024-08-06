@@ -1,3 +1,4 @@
+from turtle import pos
 from flask import Flask, request, render_template, redirect, url_for, session
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -100,34 +101,46 @@ def get_position_words():
 
 
 def does_wallet_exist(user_input, positions):
-    encrypted_input = encrypt_words(user_input)
-
     conn = connect_database()
     c = conn.cursor()
-    query = """
-    SELECT address 
-    FROM wallet 
-    WHERE word{} = ? AND word{} = ? AND word{} = ? AND word{} = ? AND word{} = ?
-    """.format(positions[0], positions[1], positions[2], positions[3], positions[4])
 
-    c.execute(
-        query,
-        (
-            encrypted_input[0],
-            encrypted_input[1],
-            encrypted_input[2],
-            encrypted_input[3],
-            encrypted_input[4],
-        ),
-    )
+    if positions != []:
+        encrypted_input = encrypt_words(user_input)
 
-    query = c.fetchall()
+        query = """
+        SELECT address 
+        FROM wallet 
+        WHERE word{} = ? AND word{} = ? AND word{} = ? AND word{} = ? AND word{} = ?
+        """.format(positions[0], positions[1], positions[2], positions[3], positions[4])
 
-    if query:
-        address = query[0][0]
-        return True, address
+        c.execute(
+            query,
+            (
+                encrypted_input[0],
+                encrypted_input[1],
+                encrypted_input[2],
+                encrypted_input[3],
+                encrypted_input[4],
+            ),
+        )
+
+        query = c.fetchall()
+        conn.close()
+
+        if query:
+            address = query[0][0]
+            return True, address
+        else:
+            return False, ""
     else:
-        return False, ""
+        c.execute("SELECT address FROM wallet WHERE address = ?", (user_input,))
+        query = c.fetchall()
+
+        if query:
+            address = query[0][0]
+            return True, address
+        else:
+            return False, ""
 
 
 def add_tokens_address(tokens, address):
@@ -231,8 +244,9 @@ def add_tokens():
 def make_transaction():
     if request.method == "GET":
         positions = get_position_words()
-        gas_fee = get_gas_fee()
+        gas_fee = 0.00005  #! TEST get_gas_fee()
         formatted_gas_fee = "{:.10f}".format(gas_fee)
+        session["gas"] = gas_fee
         session["positions"] = positions
         return render_template(
             "maketransaction.html", positions=positions, gas_fee=formatted_gas_fee
@@ -247,22 +261,45 @@ def make_transaction():
 
         if wallet_exists:
             receiver = request.form["receiver"]
-            token_amount = request.form["token_amunt"]
+            receiver_exists = does_wallet_exist(receiver, [])
+            if not receiver_exists:
+                return "Receiver does not exist!"
+
+            token_amount = float(request.form["token_amount"])
+            print(token_amount)
             hash = create_transaction_hash()
             mined_time = datetime.now() + timedelta(minutes=10)
+            gas_fee = float(session.get("gas"))
 
             conn = connect_database()
             c = conn.cursor()
 
+            print(hash, str(emitter), receiver, mined_time, token_amount, gas_fee)
+
             c.execute(
-                "INSERT INTO transaction hash, emitter, receiver, mined, tokens_send, gas_fee VALUES (?, ?, ?, ?, ?, ?)",
-                (hash, emitter, receiver, mined_time, token_amount, formatted_gas_fee),
+                "INSERT INTO transactions (hash, emitter, receiver, mined, tokens_send, gas_fee) VALUES (?, ?, ?, ?, ?, ?)",
+                (hash, str(emitter), receiver, mined_time, token_amount, gas_fee),
             )
 
             conn.commit()
             conn.close()
-
             return "good"
+
+        else:
+            return "Your seedphrase is wrong!"
+
+
+@app.route("/transactions")
+def transactions():
+    conn = connect_database()
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM transactions")
+    transactions = c.fetchall()
+
+    conn.close()
+
+    return render_template("transactionslist.html", transactions=transactions)
 
 
 if __name__ == "__main__":
