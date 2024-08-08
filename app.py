@@ -23,7 +23,7 @@ def create_database():
         """CREATE TABLE IF NOT EXISTS wallet (address TEXT PRIMARY KEY, token_amount NUMERIC, word1 TEXT, word2 TEXT, word3 TEXT, word4 TEXT, word5 TEXT, word6 TEXT, word7 TEXT, word8 TEXT, word9 TEXT, word10 TEXT, word11 TEXT, word12 TEXT)"""
     )
     c.execute(
-        "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, emitter TEXT, receiver TEXT, mined DATETIME, tokens_send NUMERIC, gas_fee NUMERIC, completed BOOLEAN, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
+        "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, emitter TEXT, receiver TEXT, mined DATETIME, tokens_send NUMERIC, gas_fee NUMERIC, completed INTEGER(1) DEFAULT 0, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
     )
     c.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_address_wallet ON wallet (address)"
@@ -182,8 +182,7 @@ def get_gas_fee():
     return gas_fee
 
 
-@app.route("/")
-def index():
+def update_chain():
     # Check mine date and update token amount
     conn = connect_database()
     c = conn.cursor()
@@ -211,9 +210,14 @@ def index():
             (transaction[5], transaction[3]),
         )
 
+    print("Updated transactions")
     conn.commit()
     conn.close()
 
+
+@app.route("/")
+def index():
+    update_chain()
     return render_template("index.html")
 
 
@@ -321,6 +325,7 @@ def make_transaction():
 
 @app.route("/chain")
 def transactions():
+    update_chain()
     conn = connect_database()
     c = conn.cursor()
 
@@ -334,6 +339,7 @@ def transactions():
 
 @app.route("/transaction/<id>")
 def transaction(id):
+    update_chain()
     conn = connect_database()
     c = conn.cursor()
 
@@ -356,6 +362,7 @@ def transaction(id):
 
 @app.route("/wallet/<address>")
 def wallet(address):
+    update_chain()
     conn = connect_database()
     c = conn.cursor()
 
