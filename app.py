@@ -184,6 +184,36 @@ def get_gas_fee():
 
 @app.route("/")
 def index():
+    # Check mine date and update token amount
+    conn = connect_database()
+    c = conn.cursor()
+    c.execute(
+        "SELECT * FROM transactions WHERE mined < ? AND completed = 0",
+        (datetime.now(),),
+    )
+    transactions = c.fetchall()
+
+    for transaction in transactions:
+        # Set to completed
+        c.execute(
+            "UPDATE transactions SET completed = 1 WHERE id = ?", (transaction[0],)
+        )
+
+        # Remove tokens and gas fee from emitter
+        c.execute(
+            "UPDATE wallet SET token_amount = token_amount - ? - ? WHERE address = ?",
+            (transaction[5], transaction[7], transaction[2]),
+        )
+
+        # Add tokens to receiver
+        c.execute(
+            "UPDATE wallet SET token_amount = token_amount + ? WHERE address = ?",
+            (transaction[5], transaction[3]),
+        )
+
+    conn.commit()
+    conn.close()
+
     return render_template("index.html")
 
 
@@ -199,14 +229,14 @@ def create_wallet():
 
         address = create_address()
 
-        crypted_words = encrypt_words(words)
+        encrypted_words = encrypt_words(words)
 
         conn = connect_database()
         c = conn.cursor()
 
         c.execute(
             "INSERT INTO wallet VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (address, 0.0, *crypted_words),
+            (address, 0.0, *encrypted_words),
         )
         conn.commit()
         conn.close()
@@ -268,7 +298,7 @@ def make_transaction():
             token_amount = float(request.form["token_amount"])
             print(token_amount)
             hash = create_transaction_hash()
-            mined_time = datetime.now() + timedelta(minutes=10)
+            mined_time = datetime.now()  #! TEST ONLY + timedelta(minutes=10)
             gas_fee = float(session.get("gas"))
 
             conn = connect_database()
