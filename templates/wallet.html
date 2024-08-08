@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet {{address}}</title>
+</head>
+
+<body>
+    <p>{{tokens}}</p>
+    <br><br>
+    {% if transactions %}
+    {% for t in transactions %}
+    <a href="/transaction/{{t[0]}}">Transaction {{t}}</a><br>
+    {% endfor %}
+    {% else %}
+    <p>No transactions</p>
+    {% endif %}
+</body>
+
+</html>

@@ -324,6 +324,32 @@ def transaction(id):
     )
 
 
+@app.route("/wallet/<address>")
+def wallet(address):
+    conn = connect_database()
+    c = conn.cursor()
+
+    c.execute("SELECT token_amount FROM wallet WHERE address = ?", (address,))
+    tokens = c.fetchall()
+
+    c.execute(
+        "SELECT * FROM transactions WHERE emitter = ? OR receiver = ?",
+        (address, address),
+    )
+
+    transactions = c.fetchall()
+
+    if tokens == []:
+        conn.close()
+        return "Wallet not found"
+
+    conn.close()
+
+    return render_template(
+        "wallet.html", tokens=tokens, address=address, transactions=transactions
+    )
+
+
 if __name__ == "__main__":
     create_database()
     get_words()
