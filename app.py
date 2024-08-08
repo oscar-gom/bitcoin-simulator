@@ -289,7 +289,7 @@ def make_transaction():
             return "Your seedphrase is wrong!"
 
 
-@app.route("/transactions")
+@app.route("/chain")
 def transactions():
     conn = connect_database()
     c = conn.cursor()
