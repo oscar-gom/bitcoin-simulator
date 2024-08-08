@@ -302,6 +302,28 @@ def transactions():
     return render_template("transactionslist.html", transactions=transactions)
 
 
+@app.route("/transaction/<id>")
+def transaction(id):
+    conn = connect_database()
+    c = conn.cursor()
+
+    c.execute("SELECT * FROM transactions WHERE id = ?", (id,))
+    transaction = c.fetchall()
+
+    if transaction == []:
+        conn.close()
+        return "Transaction not found"
+
+    gas_fee = transaction[0][6]
+    formatted_gas_fee = "{:.6f}".format(gas_fee)
+
+    conn.close()
+
+    return render_template(
+        "transaction.html", transaction=transaction[0], id=id, gas_fee=formatted_gas_fee
+    )
+
+
 if __name__ == "__main__":
     create_database()
     get_words()
