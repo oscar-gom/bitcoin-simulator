@@ -23,7 +23,7 @@ def create_database():
         """CREATE TABLE IF NOT EXISTS wallet (address TEXT PRIMARY KEY, token_amount NUMERIC, word1 TEXT, word2 TEXT, word3 TEXT, word4 TEXT, word5 TEXT, word6 TEXT, word7 TEXT, word8 TEXT, word9 TEXT, word10 TEXT, word11 TEXT, word12 TEXT)"""
     )
     c.execute(
-        "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, emitter TEXT, receiver TEXT, mined DATETIME, tokens_send NUMERIC, gas_fee NUMERIC, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
+        "CREATE TABLE IF NOT EXISTS transactions (id INTEGER PRIMARY KEY AUTOINCREMENT, hash TEXT, emitter TEXT, receiver TEXT, mined DATETIME, tokens_send NUMERIC, gas_fee NUMERIC, completed BOOLEAN, FOREIGN KEY(receiver) REFERENCES wallet(address), FOREIGN KEY (emitter) REFERENCES wallet(address))"
     )
     c.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_address_wallet ON wallet (address)"
