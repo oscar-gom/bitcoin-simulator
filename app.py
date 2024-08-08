@@ -1,4 +1,3 @@
-from turtle import pos
 from flask import Flask, request, render_template, redirect, url_for, session
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
