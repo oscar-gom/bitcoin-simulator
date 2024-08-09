@@ -1,3 +1,4 @@
+import token
 from flask import Flask, request, render_template, redirect, url_for, session
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -393,11 +394,20 @@ def transaction(id):
 
     gas_fee = transaction[0][6]
     formatted_gas_fee = format_gas_fee(gas_fee)
+    converted_gas_fee = get_dollars_btc(gas_fee)
+
+    token_amount = transaction[0][5]
+    converted_token_amount = get_dollars_btc(token_amount)
 
     conn.close()
 
     return render_template(
-        "transaction.html", transaction=transaction[0], id=id, gas_fee=formatted_gas_fee
+        "transaction.html",
+        transaction=transaction[0],
+        id=id,
+        gas_fee=formatted_gas_fee,
+        converted_gas_fee=converted_gas_fee,
+        converted_token_amount=converted_token_amount,
     )
 
 
