@@ -8,6 +8,8 @@ import random
 import string
 import hashlib
 import requests
+import time
+from functools import wraps
 
 load_dotenv()
 
@@ -158,6 +160,26 @@ def add_tokens_address(tokens, address):
     conn.close()
 
 
+# Method to limit de amount of requests to the API
+def rate_limited(min_interval):
+    def decorator(func):
+        last_called = [0]
+        last_result = [None]
+
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            elapsed = time.time() - last_called[0]
+            if elapsed >= min_interval:
+                last_result[0] = func(*args, **kwargs)
+                last_called[0] = time.time()
+            return last_result[0]
+
+        return wrapper
+
+    return decorator
+
+
+@rate_limited(60)
 def get_value_btc():
     url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
     parameters = {"symbol": "BTC", "convert": "USD"}
@@ -172,6 +194,14 @@ def get_value_btc():
     btc_price = data["data"]["BTC"]["quote"]["USD"]["price"]
     print("precio", btc_price)
     return btc_price
+
+
+def get_dollars_btc(tokens):
+    btc_dollars = get_value_btc()
+    dollars = tokens * btc_dollars
+    formatted_dollars = "{:.2f}".format(dollars)
+
+    return formatted_dollars
 
 
 def get_gas_fee():
@@ -212,6 +242,11 @@ def update_chain():
     print("Updated transactions")
     conn.commit()
     conn.close()
+
+
+# Format gas fee into 6 decimal places
+def format_gas_fee(gas_fee):
+    return "{:.6f}".format(gas_fee)
 
 
 @app.route("/")
@@ -278,7 +313,7 @@ def make_transaction():
     if request.method == "GET":
         positions = get_position_words()
         gas_fee = 0.00005  #! TEST ONLY get_gas_fee()
-        formatted_gas_fee = "{:.6f}".format(gas_fee)
+        formatted_gas_fee = format_gas_fee(gas_fee)
         session["gas"] = formatted_gas_fee
         session["positions"] = positions
         return render_template(
@@ -301,7 +336,7 @@ def make_transaction():
             token_amount = float(request.form["token_amount"])
             print(token_amount)
             hash = create_transaction_hash()
-            mined_time = datetime.now()  #! TEST ONLY + timedelta(minutes=10)
+            mined_time = datetime.now() + timedelta(minutes=10)
             gas_fee = float(session.get("gas"))
 
             conn = connect_database()
@@ -330,10 +365,17 @@ def transactions():
 
     c.execute("SELECT * FROM transactions")
     transactions = c.fetchall()
+    full_transactions = []
+    for t in transactions:
+        btc_amount = t[5]
+        usd_amount = get_dollars_btc(btc_amount)
+        gas_fee = t[6]
+        formatted_gas_fee = format_gas_fee(gas_fee)
+        full_transactions.append(t + (usd_amount, formatted_gas_fee))
 
     conn.close()
 
-    return render_template("transactionslist.html", transactions=transactions)
+    return render_template("transactionslist.html", transactions=full_transactions)
 
 
 @app.route("/transaction/<id>")
@@ -350,7 +392,7 @@ def transaction(id):
         return "Transaction not found"
 
     gas_fee = transaction[0][6]
-    formatted_gas_fee = "{:.6f}".format(gas_fee)
+    formatted_gas_fee = format_gas_fee(gas_fee)
 
     conn.close()
 
