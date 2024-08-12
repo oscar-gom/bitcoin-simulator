@@ -245,9 +245,9 @@ def update_chain():
     conn.close()
 
 
-# Format gas fee into 6 decimal places
-def format_gas_fee(gas_fee):
-    return "{:.6f}".format(gas_fee)
+# Format tokens into 6 decimal places
+def format_tokens(tokens):
+    return "{:.6f}".format(tokens)
 
 
 @app.route("/")
@@ -314,7 +314,7 @@ def make_transaction():
     if request.method == "GET":
         positions = get_position_words()
         gas_fee = 0.00005  #! TEST ONLY get_gas_fee()
-        formatted_gas_fee = format_gas_fee(gas_fee)
+        formatted_gas_fee = format_tokens(gas_fee)
         session["gas"] = formatted_gas_fee
         session["positions"] = positions
         return render_template(
@@ -371,7 +371,7 @@ def transactions():
         btc_amount = t[5]
         usd_amount = get_dollars_btc(btc_amount)
         gas_fee = t[6]
-        formatted_gas_fee = format_gas_fee(gas_fee)
+        formatted_gas_fee = format_tokens(gas_fee)
         full_transactions.append(t + (usd_amount, formatted_gas_fee))
 
     conn.close()
@@ -393,7 +393,7 @@ def transaction(id):
         return "Transaction not found"
 
     gas_fee = transaction[0][6]
-    formatted_gas_fee = format_gas_fee(gas_fee)
+    formatted_gas_fee = format_tokens(gas_fee)
     converted_gas_fee = get_dollars_btc(gas_fee)
 
     token_amount = transaction[0][5]
@@ -431,10 +431,18 @@ def wallet(address):
         conn.close()
         return "Wallet not found"
 
+    formatted_tokens = format_tokens(tokens[0][0])
+
+    value_tokens = get_dollars_btc(tokens[0][0])
+
     conn.close()
 
     return render_template(
-        "wallet.html", tokens=tokens, address=address, transactions=transactions
+        "wallet.html",
+        tokens=formatted_tokens,
+        address=address,
+        transactions=transactions,
+        dollars=value_tokens,
     )
 
 
