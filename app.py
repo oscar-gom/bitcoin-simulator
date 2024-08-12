@@ -263,11 +263,8 @@ def create_wallet():
         session["words"] = words
     else:
         words = session.get("words")
-        if words is None:
-            return "<h1>Error: No words found in session.</h1>", 400
 
         address = create_address()
-
         encrypted_words = encrypt_words(words)
 
         conn = connect_database()
@@ -280,7 +277,16 @@ def create_wallet():
         conn.commit()
         conn.close()
 
-        return f"<h1>Wallet address: {address} Created successfully!</h1>"
+        session["result"] = True
+        session["message"] = (
+            f"Your wallet address {address} was created successfully! Keep your seedphrase somewhere safe!"
+        )
+
+        return redirect(
+            url_for(
+                "chain",
+            )
+        )
 
     return render_template("createwallet.html", words=words)
 
@@ -303,10 +309,21 @@ def add_tokens():
             print(address)
             token_amount = request.form["token_amount"]
             add_tokens_address(token_amount, address)
-            return "good"
+            session["result"] = True
+            session["message"] = (
+                f"The tokes were added successfully to your wallet ({address})!"
+            )
+
+            return redirect(
+                url_for(
+                    "chain",
+                )
+            )
             # return f"<h1>Wallet address: {address} </h1>"
         else:
-            return "Your seedphrase is wrong!"
+            session["error"] = True
+            session["message"] = "Something went wrong reenter your seedphrase!"
+            return redirect(url_for("add_tokens"))
 
 
 @app.route("/make-transaction", methods=["GET", "POST"])
@@ -352,14 +369,28 @@ def make_transaction():
 
             conn.commit()
             conn.close()
-            return "good"
+
+            session["result"] = True
+            session["message"] = (
+                f"The transaction was created successfully! The transaction hash is {hash} and will be mined in 10 minutes! ({mined_time})"
+            )
+
+            return redirect(
+                url_for(
+                    "chain",
+                )
+            )
 
         else:
-            return "Your seedphrase is wrong!"
+            session["error"] = True
+            session["message"] = (
+                "Something went wrong reenter your seedphrase or the receiver address and try again!"
+            )
+            return redirect(url_for("make_transaction"))
 
 
 @app.route("/chain")
-def transactions():
+def chain():
     update_chain()
     conn = connect_database()
     c = conn.cursor()
@@ -376,7 +407,15 @@ def transactions():
 
     conn.close()
 
-    return render_template("transactionslist.html", transactions=full_transactions)
+    result = session.pop("result", False)
+    message = session.pop("message", "")
+
+    return render_template(
+        "transactionslist.html",
+        transactions=full_transactions,
+        result=result,
+        message=message,
+    )
 
 
 @app.route("/transaction/<id>")

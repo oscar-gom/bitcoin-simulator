@@ -51,6 +51,11 @@
 
 <body>
     <main class="container mt-5">
+        {% if result %}
+        <div class="alert alert-success" role="alert">
+            {{message}}
+        </div>
+        {%endif%}
         <h1 class="mb-4">Blockchain</h1>
         <div>
             <ul class="p-0">

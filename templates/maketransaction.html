@@ -47,6 +47,11 @@
 
 <body>
     <main class="container mt-5">
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{message}}
+        </div>
+        {% endif %}
         <div class="row">
             <div class="col text-center">
                 <h1>Add some tokens to your wallet!</h1>
