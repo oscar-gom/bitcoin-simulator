@@ -1,4 +1,3 @@
-import token
 from flask import Flask, request, render_template, redirect, url_for, session
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -180,7 +179,7 @@ def rate_limited(min_interval):
     return decorator
 
 
-@rate_limited(60)
+@rate_limited(300)
 def get_value_btc():
     url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
     parameters = {"symbol": "BTC", "convert": "USD"}
