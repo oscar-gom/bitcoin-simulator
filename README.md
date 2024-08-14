@@ -5,7 +5,9 @@ Have fun! 😊
 
 ---
 ## Running Locally:
-Create a .env file with the following variables:
+1. Create a .env file with the following variables:
 - COINMARKET_API_KEY (string)
 - TIMES_ENCRYPTED (integer)
 - SECRET_KEY (string)
+
+2. Run the **app.py** file and open the local address displayed in the console in your browser.
