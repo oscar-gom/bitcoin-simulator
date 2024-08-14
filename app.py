@@ -179,7 +179,7 @@ def rate_limited(min_interval):
     return decorator
 
 
-@rate_limited(300)
+@rate_limited(120)
 def get_value_btc():
     url = "https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest"
     parameters = {"symbol": "BTC", "convert": "USD"}
@@ -482,6 +482,43 @@ def wallet(address):
         transactions=transactions,
         dollars=value_tokens,
     )
+
+
+@app.route("/search", methods=["GET", "POST"])
+def search():
+    if request.method == "POST":
+        query = request.form["search"]
+        conn = connect_database()
+        c = conn.cursor()
+
+        if query[0] == "b" and query[1] == "c":
+            c.execute("SELECT * FROM wallet WHERE address = ?", (query,))
+            wallet = c.fetchall()
+            conn.close()
+            if wallet:
+                return redirect(url_for("wallet", address=query))
+            else:
+                session["result"] = True
+                session["message"] = (
+                    f"Wallet with address {query} not found! Try again!"
+                )
+                return redirect(url_for("chain"))
+        elif query[0] == "0":
+            c.execute("SELECT * FROM transactions WHERE hash = ?", (query,))
+            transaction = c.fetchall()
+            conn.close()
+            if transaction:
+                return redirect(url_for("transaction", id=transaction[0][0]))
+            else:
+                session["result"] = True
+                session["message"] = (
+                    f"Transaction with hash {query} not found! Try again!"
+                )
+                return redirect(url_for("chain"))
+        else:
+            session["result"] = True
+            session["message"] = "Invalid search! Try again!"
+            return redirect(url_for("chain"))
 
 
 if __name__ == "__main__":
